@@ -1,0 +1,75 @@
+{
+  "nodes": [
+    {
+      "id": "n/robot1/teleop",
+      "ns": "/robot1",
+      "name": "teleop",
+      "kind": "node"
+    },
+    {
+      "id": "n/robot1/controller",
+      "ns": "/robot1",
+      "name": "controller",
+      "kind": "node"
+    },
+    {
+      "id": "n/robot1/lidar",
+      "ns": "/robot1",
+      "name": "lidar",
+      "kind": "node"
+    }
+  ],
+  "topics": [
+    {
+      "id": "t/robot1/cmd_vel",
+      "name": "/robot1/cmd_vel",
+      "msgType": "geometry_msgs/msg/Twist",
+      "pubCount": 1,
+      "subCount": 1,
+      "qos": {
+        "summary": "best_effort, depth 5 (fixture metadata)"
+      }
+    },
+    {
+      "id": "t/robot1/scan",
+      "name": "/robot1/scan",
+      "msgType": "sensor_msgs/msg/LaserScan",
+      "pubCount": 1,
+      "subCount": 1,
+      "qos": {
+        "summary": "best_effort, depth 10 (fixture metadata)"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "nodeId": "n/robot1/teleop",
+      "topicId": "t/robot1/cmd_vel",
+      "direction": "pub",
+      "qosCompat": "ok"
+    },
+    {
+      "id": "e2",
+      "nodeId": "n/robot1/controller",
+      "topicId": "t/robot1/cmd_vel",
+      "direction": "sub",
+      "qosCompat": "ok"
+    },
+    {
+      "id": "e3",
+      "nodeId": "n/robot1/lidar",
+      "topicId": "t/robot1/scan",
+      "direction": "pub",
+      "qosCompat": "ok"
+    },
+    {
+      "id": "e4",
+      "nodeId": "n/robot1/controller",
+      "topicId": "t/robot1/scan",
+      "direction": "sub",
+      "qosCompat": "ok"
+    }
+  ],
+  "activity": []
+}

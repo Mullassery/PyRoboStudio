@@ -1,0 +1,38 @@
+{
+  "frames": [
+    {
+      "frameId": "odom",
+      "authority": "sample_session"
+    },
+    {
+      "frameId": "base_link",
+      "parentId": "odom",
+      "translation": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "frameId": "laser",
+      "parentId": "base_link",
+      "translation": [
+        0.2,
+        0.0,
+        0.3
+      ],
+      "rotation": [
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ]
+}

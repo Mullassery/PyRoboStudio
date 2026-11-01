@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --studio-bg: oklch(0.97 0.005 265);
+  --studio-panel: oklch(1 0 0);
+  --studio-border: oklch(0.9 0.01 265);
+  --studio-text: oklch(0.25 0.02 265);
+  --studio-muted: oklch(0.55 0.02 265);
+  --studio-accent: oklch(0.55 0.18 260);
+  --studio-ok: oklch(0.6 0.15 160);
+  --studio-warn: oklch(0.75 0.16 85);
+  --studio-err: oklch(0.6 0.2 25);
+}
+.dark {
+  --studio-bg: oklch(0.18 0.015 265);
+  --studio-panel: oklch(0.22 0.02 265);
+  --studio-border: oklch(0.32 0.02 265);
+  --studio-text: oklch(0.92 0.01 265);
+  --studio-muted: oklch(0.65 0.02 265);
+  --studio-accent: oklch(0.68 0.16 260);
+  --studio-ok: oklch(0.7 0.15 160);
+  --studio-warn: oklch(0.8 0.15 85);
+  --studio-err: oklch(0.65 0.18 25);
+}
+
+@theme inline {
+  --color-bg: var(--studio-bg);
+  --color-panel: var(--studio-panel);
+  --color-border: var(--studio-border);
+  --color-fg: var(--studio-text);
+  --color-muted: var(--studio-muted);
+  --color-accent: var(--studio-accent);
+  --color-ok: var(--studio-ok);
+  --color-warn: var(--studio-warn);
+  --color-err: var(--studio-err);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+body {
+  margin: 0;
+  background: var(--studio-bg);
+  color: var(--studio-text);
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+}
+
+#root, .studio-shell {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dockview-theme-abyss {
+  --dv-background: var(--studio-bg);
+  --dv-group-view-background-color: var(--studio-panel);
+  --dv-tabs-and-actions-container-background-color: transparent;
+  --dv-activegroup-visiblepanel-tab-background-color: var(--studio-panel);
+  --dv-group-view-background-color: var(--studio-panel);
+  --dv-separator-border: var(--studio-border);
+  --dv-activegroup-visiblepanel-tab-color: var(--studio-text);
+  --dv-activegroup-hiddenpanel-tab-color: var(--studio-muted);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--studio-muted);
+}
+
+.badge {
+  @apply inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide;
+}
+
+.studio-status-dot {
+  @apply inline-block h-2 w-2 rounded-full;
+}

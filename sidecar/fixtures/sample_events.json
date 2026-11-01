@@ -1,0 +1,26 @@
+[
+  {
+    "id": "ev-gap",
+    "sessionId": "sample_session",
+    "timestampNs": 1000000000,
+    "kind": "communication_gap",
+    "label": "cmd_vel gap 0.8s (i=3..5)",
+    "severity": "warn"
+  },
+  {
+    "id": "ev-scan-anomaly",
+    "sessionId": "sample_session",
+    "timestampNs": 6000000000,
+    "kind": "scan_range_spike",
+    "label": "scan ranges spike 2.0x",
+    "severity": "error"
+  },
+  {
+    "id": "ev-recovered",
+    "sessionId": "sample_session",
+    "timestampNs": 9000000000,
+    "kind": "recovery",
+    "label": "teleop resumed",
+    "severity": "info"
+  }
+]

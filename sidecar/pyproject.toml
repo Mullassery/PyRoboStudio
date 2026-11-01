@@ -1,0 +1,26 @@
+[project]
+name = "pyrobostudio-sidecar"
+version = "0.1.0"
+description = "PyRoboStudio data sidecar: recorded-session serving, capabilities, mission/time APIs"
+authors = [
+    { name = "Georgi Mullassery", email = "mullassery@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.162.0",
+    "httpx>=0.28.1",
+    "mcap>=1.6.0",
+    "mcap-ros2-support>=0.6.0",
+    "foxglove-sdk>=0.30",
+    "websockets>=17.0",
+    "pytest>=9.2.0",
+    "uvicorn[standard]>=0.54.0",
+    "h3>=4.5.0",
+]
+
+[project.scripts]
+pyrobostudio-sidecar = "pyrobostudio_sidecar:main"
+
+[build-system]
+requires = ["uv_build>=0.13.0,<0.14.0"]
+build-backend = "uv_build"
