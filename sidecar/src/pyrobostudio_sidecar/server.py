@@ -7,24 +7,37 @@ requires a ROS 2 environment (Ubuntu); this build reports that honestly
 via /capabilities.adapterStatus instead of pretending.
 """
 import json
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 
 from pyrobostudio_sidecar.recorded import degraded_topics, iter_samples, load_session, topic_activity
 from pyrobostudio_sidecar.terrain_fixture import regions_json
+from pyrobostudio_sidecar.ws_transport import WsTransport
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 FIXTURES = ROOT / "fixtures"
 MAX_SAMPLES = 10
+WS_PORT = 9887
 
 
 def _load_json(name: str) -> object:
     return json.loads((FIXTURES / name).read_text())
 
 
-def create_app(session_id: str = "sample_session") -> FastAPI:
-    app = FastAPI()
+def create_app(session_id: str = "sample_session", ws_port: int | None = WS_PORT) -> FastAPI:
+    ws_transport = WsTransport(port=ws_port) if ws_port else None
+
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        if ws_transport:
+            ws_transport.start()
+        yield
+        if ws_transport:
+            ws_transport.stop()
+
+    app = FastAPI(lifespan=lifespan)
     mcap_path = FIXTURES / "sample_session.mcap"
     if not mcap_path.exists():
         raise RuntimeError(
@@ -36,6 +49,7 @@ def create_app(session_id: str = "sample_session") -> FastAPI:
 
     @app.get("/capabilities")
     def capabilities() -> dict:
+        ws_state = ws_transport.starting or ws_transport.loaded
         return {
             "schema_version": "1",
             "origin": "recorded",
@@ -53,6 +67,7 @@ def create_app(session_id: str = "sample_session") -> FastAPI:
             ),
             "adapterStatus": [
                 {"name": "recorded", "loaded": True, "degraded": degraded},
+                {"name": "foxglove-ws", "loaded": ws_state, "errors": [] if ws_state else ["websocket transport not started"]},
                 {
                     "name": "ros-live",
                     "loaded": False,

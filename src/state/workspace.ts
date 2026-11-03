@@ -107,6 +107,8 @@ interface WorkspaceState {
 }
 
 interface WorkspaceStore extends WorkspaceState {
+  sourceRev: number;
+  bumpSourceRev(): void;
   setTheme(t: "dark" | "light"): void;
   setSourceId(s: "simulated" | "sidecar"): void;
   setLayoutJson(j: string | null): void;
@@ -118,8 +120,10 @@ export const useWorkspace = create<WorkspaceStore>()(
     (set) => ({
       theme: "dark",
       sourceId: "simulated",
+      sourceRev: 0,
       layoutJson: null,
       panelConfigs: {},
+      bumpSourceRev: () => set((s) => ({ sourceRev: s.sourceRev + 1 })),
       setTheme: (theme) => set({ theme }),
       setSourceId: (sourceId) => set({ sourceId }),
       setLayoutJson: (layoutJson) => set({ layoutJson }),

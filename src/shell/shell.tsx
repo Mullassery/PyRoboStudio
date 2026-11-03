@@ -62,6 +62,9 @@ export function StudioShell() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const theme = useWorkspace((s) => s.theme);
   const sourceId = useWorkspace((s) => s.sourceId);
+  const sourceRev = useWorkspace((s) => s.sourceRev);
+  void sourceRev;
+
   const setSourceId = useWorkspace((s) => s.setSourceId);
   const setTheme = useWorkspace((s) => s.setTheme);
   const setLayoutJson = useWorkspace((s) => s.setLayoutJson);

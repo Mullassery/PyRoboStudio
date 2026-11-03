@@ -69,3 +69,49 @@ def test_terrain_regions_are_real_h3(client):
     regions = client.get("/terrain/regions").json()
     assert regions
     assert all(h3.is_valid_cell(r["cellId"]) for r in regions)
+
+
+def test_foxglove_ws_handshake():
+    """Conformance: ws transport negotiates foxglove.sdk.v1 and advertises fixture topics."""
+    import asyncio
+    import json
+
+    import websockets
+
+    from pyrobostudio_sidecar.ws_transport import WsTransport
+
+    t = WsTransport(port=9891)
+    t.start()
+    try:
+
+        async def grab() -> tuple[dict, list | None]:
+            conn = await websockets.connect(
+                "ws://127.0.0.1:9891", subprotocols=["foxglove.sdk.v1"], open_timeout=5
+            )
+            info = None
+            adv = None
+            for _ in range(20):
+                try:
+                    msg = await asyncio.wait_for(conn.recv(), timeout=2)
+                except TimeoutError:
+                    break
+                if isinstance(msg, bytes):
+                    continue
+                text = json.loads(msg)
+                if text["op"] == "serverInfo":
+                    info = text
+                elif text["op"] == "advertise" and text.get("channels"):
+                    adv = text["channels"]
+                    break
+            await conn.close()
+            return info, adv
+
+        info, adv = asyncio.run(grab())
+        assert info is not None
+        assert "time" in info["capabilities"]
+        topics = {c["topic"] for c in adv or []}
+        assert "/robot1/cmd_vel" in topics
+        assert "/robot1/scan" in topics
+        assert all(c["encoding"] == "json" for c in adv or [])
+    finally:
+        t.stop()

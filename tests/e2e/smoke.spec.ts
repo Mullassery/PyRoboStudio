@@ -66,10 +66,26 @@ test("switching to the sidecar source serves recorded data end-to-end", async ({
   await page.keyboard.type("sidecar");
   await page.keyboard.press("Enter");
   await expect(page.getByTestId("status-source")).toContainText("source: sidecar", { timeout: 10_000 });
-  await expect(page.getByTestId("status-source")).toContainText("offline mode", { timeout: 10_000 });
+  await expect(page.getByTestId("status-source")).toContainText("recorded session served", { timeout: 10_000 });
   await expect(page.getByTestId("origin-badge-recorded").first()).toBeVisible();
 
   await page.getByText("panel-replay-timeline", { exact: true }).click();
   await expect(page.getByTestId("replay-panel")).toBeVisible({ timeout: 10_000 });
   await expect(page.getByTestId("replay-session-select")).toContainText("sample_session", { timeout: 10_000 });
+});
+
+test("losing the sidecar mid-session shows an accurate disconnected state", async ({ page }) => {
+  const context = page.context();
+  await page.goto("/");
+  await expect(page.getByTestId("studio-shell")).toBeVisible();
+
+  await page.getByTestId("open-palette").click();
+  await page.keyboard.type("sidecar");
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("status-source")).toContainText("source: sidecar", { timeout: 10_000 });
+  await expect(page.getByTestId("status-source")).toContainText("recorded session served", { timeout: 10_000 });
+
+  await context.route("**/api/**", (route) => route.abort());
+  await expect(page.getByTestId("status-source")).toContainText("disconnected", { timeout: 15_000 });
+  await expect(page.getByTestId("connection-status")).toContainText("Sidecar");
 });
