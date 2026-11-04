@@ -147,3 +147,21 @@ test("mission timeline joins artifacts and drives replay from a failure event", 
   await expect(page.getByTestId("replay-panel")).toBeVisible({ timeout: 10_000 });
   await expect(page.getByTestId("replay-cursor-ns")).toContainText("6000000000", { timeout: 10_000 });
 });
+
+test("track debugger renders identity-colored bboxes and lifecycle events", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("studio-shell")).toBeVisible();
+
+  await page.getByTestId("open-palette").click();
+  await page.keyboard.type("track");
+  await page.keyboard.press("Enter");
+  await page.getByText("panel-track-debugger", { exact: true }).click();
+  await expect(page.getByTestId("track-debugger")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("track-image-plane").getByTestId("track-bbox-1")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("track-event-born").first()).toBeVisible();
+  await expect(page.getByTestId("track-event-occluded").first()).toBeVisible();
+  await expect(page.getByTestId("track-debugger").getByText("derived").first()).toBeVisible();
+
+  await page.getByTestId("track-play").click();
+  await expect(page.getByTestId("track-frame-label")).toContainText("frame 1", { timeout: 5_000 });
+});

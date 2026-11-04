@@ -17,9 +17,10 @@ PyNetworkIntel scans (+ topology panel), and SyncFleet journals, each with
 round-trip fixture tests and exposed under `/repos/*` with per-adapter
 `adapterStatus` degradation. Foxglove WS is wired into the sidecar (uvicorn
 lifespan, conformance-tested); sidecar-lost-mid-session E2E passes via
-transport-failure interception. Phase 5 started — selection bus roll-out with explicit
-not-correlated states, and mission manifest v1 + mission timeline panel
-(Gap 1 MVP) are done; tracker debugger and workspace export/import remain.
+transport-failure interception. Phase 5 in progress — selection bus roll-out with explicit
+not-correlated states, mission manifest v1 + mission timeline panel
+(Gap 1 MVP), and tracker debugger v0 (Gap 3: identity-colored bboxes +
+derived SE(lifecycle) events) are done; workspace export/import remains.
 Honest PARTIAL/open items tracked in
 `docs/roadmap.md`.
 

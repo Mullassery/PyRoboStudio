@@ -14,6 +14,7 @@ export const SELECTION_MAPPINGS: Record<string, EntityKind[]> = {
   charts: ["topic"],
   "network-topology": [],
   "mission-timeline": ["session_event", "session"],
+  "track-debugger": ["track"],
 };
 
 export function supportedKindsFor(panelId: string): EntityKind[] {

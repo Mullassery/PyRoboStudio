@@ -7,6 +7,7 @@ import { ReplayPanel } from "./replay";
 import { ChartsPanel } from "./charts";
 import { NetworkTopologyPanel } from "./network-topology";
 import { MissionTimelinePanel } from "./mission-timeline";
+import { TrackDebuggerPanel } from "./track-debugger";
 
 export const graphExplorer: PanelPlugin = {
   id: "ros-graph-explorer",
@@ -88,8 +89,18 @@ export const missionTimeline: PanelPlugin = {
   component: MissionTimelinePanel,
 };
 
+export const trackDebugger: PanelPlugin = {
+  id: "track-debugger",
+  version: "1.0.0",
+  contractVersion: 1,
+  displayName: "Track Debugger",
+  description: "PyRoboVision tracks: identity-colored bboxes, lifecycle events, occlusion gaps",
+  requiredCapabilities: [],
+  component: TrackDebuggerPanel,
+};
+
 export const panelRegistry: PanelRegistry = new PanelRegistry();
-for (const p of [graphExplorer, dataInspector, world3d, terrain, replay, charts, networkTopology, missionTimeline]) {
+for (const p of [graphExplorer, dataInspector, world3d, terrain, replay, charts, networkTopology, missionTimeline, trackDebugger]) {
   panelRegistry.register(p);
 }
 
