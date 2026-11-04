@@ -26,6 +26,12 @@ export function ReplayPanel({ ctx }: { ctx: PanelMountContextBase }) {
   const [playing, setPlaying] = useState(false);
   const sourceChanged = useWorkspace((s) => s.sourceId);
   const { ref: selected, banner } = useCorrelationBanner(ctx);
+  const [cursorNs, setCursorNs] = useState<bigint | null>(ctx.time.cursor());
+
+  useEffect(() => {
+    const off = ctx.time.subscribe((t) => setCursorNs(t));
+    return off;
+  }, [ctx]);
 
   useEffect(() => {
     let cancelled = false;
@@ -128,7 +134,7 @@ export function ReplayPanel({ ctx }: { ctx: PanelMountContextBase }) {
           <div className="relative mx-2 mb-1 h-8 rounded border border-border bg-panel" data-testid="replay-timeline">
             <div
               className="absolute bottom-1 h-2 rounded bg-accent"
-              style={{ width: cursorWidth(session, ctx) }}
+              style={{ width: cursorWidth(session, cursorNs) }}
               data-testid="replay-cursor-bar"
             />
             {(events ?? []).map((ev) => (
@@ -157,7 +163,7 @@ export function ReplayPanel({ ctx }: { ctx: PanelMountContextBase }) {
               {playing ? "Pause" : "Play"}
             </button>
             <span className="font-mono" data-testid="replay-cursor-ns">
-              {ctx.time.cursor()?.toString() ?? "—"}
+              {cursorNs?.toString() ?? "—"}
             </span>
           </div>
           {session.degraded.length > 0 && (
@@ -191,8 +197,7 @@ export function ReplayPanel({ ctx }: { ctx: PanelMountContextBase }) {
   );
 }
 
-function cursorWidth(session: SessionSummary, ctx: PanelMountContextBase): string {
-  const cur = ctx.time.cursor();
+function cursorWidth(session: SessionSummary, cur: bigint | null): string {
   if (cur === null) return "0%";
   const span = sessionSpanNs(session);
   const off = cur - session.span.startNs;

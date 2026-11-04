@@ -96,6 +96,14 @@ def make_repo_fixtures() -> None:
     """Phase 4 adapter fixtures: ros2bag .db3, lerobot dataset, tracks JSON, world_spec.json, sqlite stores."""
     from pyrobostudio_sidecar.ros2bag import write_db3_fixture
     from pyrobostudio_sidecar.fixtures_env import make_ni_db, make_sf_db
+
+    for stale in [
+        FIXTURE_DIR / "sample_session.db3",
+        FIXTURE_DIR / "sample_tracks.json",
+        FIXTURE_DIR / "pynetworkintel.db",
+        FIXTURE_DIR / "syncfleet.db",
+    ]:
+        stale.unlink(missing_ok=True)
     import numpy as np
     import pyarrow as pa
     import pyarrow.parquet as pq
@@ -208,6 +216,40 @@ def make_repo_fixtures() -> None:
     make_sf_db(FIXTURE_DIR / "syncfleet.db")
     print(f"wrote adapter fixtures in {FIXTURE_DIR}: sample_session.db3, warehouse_demo/, sample_tracks.json, warehouse_sim/, pynetworkintel.db, syncfleet.db")
 
+def make_mission_manifest() -> None:
+    """mission.json v1 joining the adapter fixtures with real sha256 hashes."""
+    import hashlib
+
+    from pyrobostudio_sidecar.mission import sha256_of
+
+    def h(name: str) -> str:
+        return sha256_of(FIXTURE_DIR / name)
+
+    manifest = {
+        "schema_version": "1",
+        "mission_id": "mission-warehouse-001",
+        "run_id": "run-2026-11-04-a",
+        "robots": ["robot1", "robot2"],
+        "time_base": {"domain": "session_ns", "start_ns": 0, "end_ns": 10_000_000_000},
+        "artifacts": [
+            {"kind": "rosbag", "id": "sample_session", "uri": "sample_session.mcap", "sha256": h("sample_session.mcap"), "origin": "recorded"},
+            {"kind": "rosbag_db3", "id": "sample_session_db3", "uri": "sample_session.db3", "sha256": h("sample_session.db3"), "origin": "recorded"},
+            {"kind": "vision_tracks", "id": "clip-warehouse-1", "uri": "sample_tracks.json", "sha256": h("sample_tracks.json"), "origin": "recorded"},
+            {"kind": "world_spec", "id": "warehouse_sim", "uri": "warehouse_sim/world_spec.json", "sha256": h("warehouse_sim/world_spec.json"), "origin": "simulated"},
+            {"kind": "networkintel", "id": "pynetworkintel", "uri": "pynetworkintel.db", "sha256": h("pynetworkintel.db"), "origin": "simulated"},
+            {"kind": "syncfleet", "id": "syncfleet", "uri": "syncfleet.db", "sha256": h("syncfleet.db"), "origin": "simulated"},
+        ],
+        "events": [
+            {"id": "ev-gap", "timestamp_ns": 1_000_000_000, "kind": "communication_gap", "label": "cmd_vel gap 0.8s (i=3..5)", "severity": "warn", "artifact": "sample_session"},
+            {"id": "ev-scan-anomaly", "timestamp_ns": 6_000_000_000, "kind": "scan_range_spike", "label": "scan ranges spike 2.0x", "severity": "error", "artifact": "sample_session"},
+            {"id": "ev-recovered", "timestamp_ns": 9_000_000_000, "kind": "recovery", "label": "teleop resumed", "severity": "info", "artifact": "sample_session"},
+        ],
+    }
+    (FIXTURE_DIR / "mission_warehouse.json").write_text(json.dumps(manifest, indent=2))
+    print(f"wrote {FIXTURE_DIR / 'mission_warehouse.json'}")
+
+
 if __name__ == "__main__":
     make_fixture()
     make_repo_fixtures()
+    make_mission_manifest()

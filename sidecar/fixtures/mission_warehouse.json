@@ -1,0 +1,84 @@
+{
+  "schema_version": "1",
+  "mission_id": "mission-warehouse-001",
+  "run_id": "run-2026-11-04-a",
+  "robots": [
+    "robot1",
+    "robot2"
+  ],
+  "time_base": {
+    "domain": "session_ns",
+    "start_ns": 0,
+    "end_ns": 10000000000
+  },
+  "artifacts": [
+    {
+      "kind": "rosbag",
+      "id": "sample_session",
+      "uri": "sample_session.mcap",
+      "sha256": "3741dc300c778711e22e8882477327ea8c70a3f306d1b6a0fd004d1262675b19",
+      "origin": "recorded"
+    },
+    {
+      "kind": "rosbag_db3",
+      "id": "sample_session_db3",
+      "uri": "sample_session.db3",
+      "sha256": "c0ff2c2b1fd705641c925b16696fa9e0056290b1ce93c54752177a2e29bf9809",
+      "origin": "recorded"
+    },
+    {
+      "kind": "vision_tracks",
+      "id": "clip-warehouse-1",
+      "uri": "sample_tracks.json",
+      "sha256": "1892fa5259233778c75bf7e8144311fbf55715d7a03f46529c10c0ee0128232b",
+      "origin": "recorded"
+    },
+    {
+      "kind": "world_spec",
+      "id": "warehouse_sim",
+      "uri": "warehouse_sim/world_spec.json",
+      "sha256": "e5a885e2e1157d75ccab5dd5b3abe886714ecce07eae66e94dcb29c4ef57dff0",
+      "origin": "simulated"
+    },
+    {
+      "kind": "networkintel",
+      "id": "pynetworkintel",
+      "uri": "pynetworkintel.db",
+      "sha256": "f78dcaef23a7b45d7fb69ee8dc7b0f6a0c8ec07a97b932e5ab9d25a027b0283f",
+      "origin": "simulated"
+    },
+    {
+      "kind": "syncfleet",
+      "id": "syncfleet",
+      "uri": "syncfleet.db",
+      "sha256": "6bbe54892dd77fe40db893cef957a91defb057c98c305483bf91c1e829b4b26f",
+      "origin": "simulated"
+    }
+  ],
+  "events": [
+    {
+      "id": "ev-gap",
+      "timestamp_ns": 1000000000,
+      "kind": "communication_gap",
+      "label": "cmd_vel gap 0.8s (i=3..5)",
+      "severity": "warn",
+      "artifact": "sample_session"
+    },
+    {
+      "id": "ev-scan-anomaly",
+      "timestamp_ns": 6000000000,
+      "kind": "scan_range_spike",
+      "label": "scan ranges spike 2.0x",
+      "severity": "error",
+      "artifact": "sample_session"
+    },
+    {
+      "id": "ev-recovered",
+      "timestamp_ns": 9000000000,
+      "kind": "recovery",
+      "label": "teleop resumed",
+      "severity": "info",
+      "artifact": "sample_session"
+    }
+  ]
+}

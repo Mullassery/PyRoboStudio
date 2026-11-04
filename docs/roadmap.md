@@ -49,11 +49,11 @@
 - Acceptance: each adapter has round-trip fixture tests + a conformance note (`docs/research/adapter-schemas.md`); no adapter blocks everything else.
 
 ### Phase 5 — Cross-view workflows
-- [ ] Selection bus roll-out across all panels with mapping tables + explicit "not correlated" states.
-- [ ] Mission manifest v1 (competitive-analysis Gap 1) and mission timeline panel.
+- [x] Selection bus roll-out across all panels with mapping tables + explicit "not correlated" states. **DONE (2026-11-04)** — `src/sdk/selection-mapping.ts` per-panel kind table (accepts dockview `panel-<id>` keys), `NotCorrelatedState` banner wired into all 7 panels; replay consumes `session_event` (seeks), terrain consumes robot/node (filters), world3d consumes `frame`; unit tests + E2E asserting the banner appears on network-topology and disappears on correlated panels. Also fixed a latent bug: ReactFlow never re-fit after async ELK layout (nodes off-viewport, unclickable).
+- [x] Mission manifest v1 (competitive-analysis Gap 1) and mission timeline panel. **DONE (2026-11-04)** — versioned `mission.json` (`mission.py`: schema/origin/hash validation, sha256 staleness rejection, event time-base bounds), fixture with real hashes over 6 artifacts, `/missions` + `/missions/{id}` endpoints (6 sidecar tests), `src/panels/mission-timeline.tsx` (artifacts with kind/sha256/origin badges, event timeline that seeks the shared TimeBus + publishes `session_event`), E2E: mission event drives replay cursor to 6000000000.
 - [ ] Tracker debugger v0 (Gap 3): SE(lifecycle) events overlayed on 3D + image panels.
 - [ ] Workspace export/import; SyncFleet-backed annotation sync spike (Gap 4) — evaluation only, behind flag.
-- Acceptance: golden-mission demo drives 3D + graph + perception + terrain from one failure event.
+- Acceptance: golden-mission demo drives 3D + graph + perception + terrain from one failure event. **PARTIAL (2026-11-04)** — mission event drives replay seek + selection bus; panels without mappings show explicit not-correlated states rather than fake correlation. Full cross-pane filtering (3D/graph/terrain focus) still open.
 
 ### Phase 6 — Benchmark and harden
 - [ ] Performance budget campaign (master prompt §10): large graph threshold measurement (xyflow vs sigma switch point), message-rate ceilings, memory soak, dockview multi-panel limits; document real numbers vs claims.

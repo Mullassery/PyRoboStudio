@@ -6,6 +6,7 @@ import { TerrainPanel } from "./terrain";
 import { ReplayPanel } from "./replay";
 import { ChartsPanel } from "./charts";
 import { NetworkTopologyPanel } from "./network-topology";
+import { MissionTimelinePanel } from "./mission-timeline";
 
 export const graphExplorer: PanelPlugin = {
   id: "ros-graph-explorer",
@@ -77,8 +78,18 @@ export const networkTopology: PanelPlugin = {
   component: NetworkTopologyPanel,
 };
 
+export const missionTimeline: PanelPlugin = {
+  id: "mission-timeline",
+  version: "1.0.0",
+  contractVersion: 1,
+  displayName: "Mission Timeline",
+  description: "Mission manifest artifacts + causal events on one synchronized timeline",
+  requiredCapabilities: ["sessions.read"],
+  component: MissionTimelinePanel,
+};
+
 export const panelRegistry: PanelRegistry = new PanelRegistry();
-for (const p of [graphExplorer, dataInspector, world3d, terrain, replay, charts, networkTopology]) {
+for (const p of [graphExplorer, dataInspector, world3d, terrain, replay, charts, networkTopology, missionTimeline]) {
   panelRegistry.register(p);
 }
 

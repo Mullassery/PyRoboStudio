@@ -12,6 +12,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 
+from pyrobostudio_sidecar.mission import MissionError, load_manifest, manifest_out, mission_summary
 from pyrobostudio_sidecar.recorded import degraded_topics, iter_samples, load_session, topic_activity
 from pyrobostudio_sidecar.repos import mount_from_fixtures, router as repos_router
 from pyrobostudio_sidecar.terrain_fixture import regions_json
@@ -142,6 +143,29 @@ def create_app(session_id: str = "sample_session", ws_port: int | None = WS_PORT
         if sid != fmcap.session_id:
             raise HTTPException(404, f"unknown session {sid}")
         return _load_json("sample_events.json")
+
+    @app.get("/missions")
+    def missions() -> list[dict]:
+        path = FIXTURES / "mission_warehouse.json"
+        if not path.exists():
+            return []
+        try:
+            return [mission_summary(load_manifest(path))]
+        except MissionError as e:
+            return [{"missionId": None, "error": f"manifest invalid: {e}"}]
+
+    @app.get("/missions/{mid}")
+    def mission_detail(mid: str) -> dict:
+        path = FIXTURES / "mission_warehouse.json"
+        if not path.exists():
+            raise HTTPException(404, f"unknown mission {mid}")
+        try:
+            data = load_manifest(path)
+        except MissionError as e:
+            raise HTTPException(500, f"manifest invalid: {e}")
+        if data["mission_id"] != mid:
+            raise HTTPException(404, f"unknown mission {mid}")
+        return manifest_out(data)
 
     @app.get("/terrain/regions")
     def terrain() -> list[dict]:

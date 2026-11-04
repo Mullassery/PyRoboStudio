@@ -126,3 +126,24 @@ test("uncorrelated selections surface an explicit not-correlated state", async (
   await page.getByText("panel-ros-graph-explorer", { exact: true }).click();
   await expect(page.getByTestId("selection-uncorrelated")).toHaveCount(0);
 });
+
+test("mission timeline joins artifacts and drives replay from a failure event", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("studio-shell")).toBeVisible();
+
+  await page.getByTestId("open-palette").click();
+  await page.keyboard.type("mission");
+  await page.keyboard.press("Enter");
+  await page.getByText("panel-mission-timeline", { exact: true }).click();
+  await expect(page.getByTestId("mission-panel")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("mission-title")).toContainText("mission-warehouse-001");
+  await expect(page.getByTestId("mission-artifact-rosbag")).toBeVisible();
+  await expect(page.getByTestId("mission-artifact-world_spec")).toBeVisible();
+  await expect(page.getByTestId("mission-artifacts").getByText(/sha256:/)).toHaveCount(6);
+
+  await page.getByTestId("mission-event-ev-scan-anomaly").click();
+
+  await page.getByText("panel-replay-timeline", { exact: true }).click();
+  await expect(page.getByTestId("replay-panel")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("replay-cursor-ns")).toContainText("6000000000", { timeout: 10_000 });
+});
