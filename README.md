@@ -32,8 +32,15 @@ presented as measured. Honest status reporting over demo polish.
 
 ## Quickstart
 
+The sidecar is published on PyPI as
+[`pyrobostudio-sidecar`](https://pypi.org/project/pyrobostudio-sidecar/):
+
 ```sh
-# sidecar (Python 3.12 + uv)
+# sidecar — install from PyPI, then generate fixtures and serve 127.0.0.1:8787
+pip install pyrobostudio-sidecar
+python -m pyrobostudio_sidecar.make_fixture
+pyrobostudio-sidecar
+# or, from a checkout:
 cd sidecar
 uv sync
 uv run python -m pyrobostudio_sidecar.make_fixture   # regenerates fixtures
@@ -69,7 +76,7 @@ Benchmarks (real measured numbers, methodology, and limits):
   verified from wheels/upstream), per-repo adapter schemas
 - `docs/decisions/` — ADRs, each recording verification evidence
 - `docs/plugin-author-guide.md` — how to add a panel
-- `docs/sidecar-deployment.md` — running the sidecar on macOS/Ubuntu
+- `docs/sidecar-deployment.md` — running the sidecar on macOS/Ubuntu (incl. the PyPI package)
 - `docs/troubleshooting.md` — common failure modes and fixes
 - `docs/benchmarks.md` — measured performance numbers
 

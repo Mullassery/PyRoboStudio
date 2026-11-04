@@ -769,10 +769,14 @@ dependencies = [
     { name = "mcap" },
     { name = "mcap-ros2-support" },
     { name = "pyarrow" },
-    { name = "pytest" },
     { name = "rosbags" },
     { name = "uvicorn", extra = ["standard"] },
     { name = "websockets" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
 ]
 
 [package.metadata]
@@ -784,11 +788,13 @@ requires-dist = [
     { name = "mcap", specifier = ">=1.6.0" },
     { name = "mcap-ros2-support", specifier = ">=0.6.0" },
     { name = "pyarrow", specifier = ">=26.0.1" },
-    { name = "pytest", specifier = ">=9.2.0" },
     { name = "rosbags", specifier = ">=0.11.9" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54.0" },
     { name = "websockets", specifier = ">=17.0" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.2.0" }]
 
 [[package]]
 name = "pytest"

@@ -71,3 +71,19 @@ npm run typecheck && npx vitest run && npx playwright test
 - Browser CSP: not yet enforced in the production build.
 - The server is single-process uvicorn; measured ~1400 rps per endpoint at
   8-way concurrency (docs/benchmarks.md §2) — far beyond single-user needs.
+
+## Install from PyPI (0.1.0, published 2026-11-04)
+
+The sidecar ships as [`pyrobostudio-sidecar`](https://pypi.org/project/pyrobostudio-sidecar/)
+(wheel + sdist, MIT, Python >= 3.12):
+
+```sh
+pip install pyrobostudio-sidecar
+python -m pyrobostudio_sidecar.make_fixture   # writes fixtures next to the install
+pyrobostudio-sidecar                          # console script -> uvicorn on 127.0.0.1:8787
+```
+
+The console script (`pyrobostudio_sidecar:main`) binds 127.0.0.1:8787, same as
+`server.py __main__`. With no fixtures present the server refuses to start with
+the honest error `fixture missing: run python -m pyrobostudio_sidecar.make_fixture`
+(verified on a clean venv before publishing).
