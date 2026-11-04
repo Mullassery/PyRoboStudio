@@ -165,3 +165,34 @@ test("track debugger renders identity-colored bboxes and lifecycle events", asyn
   await page.getByTestId("track-play").click();
   await expect(page.getByTestId("track-frame-label")).toContainText("frame 1", { timeout: 5_000 });
 });
+
+test("workspace export/import round-trips theme and layout via palette", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("studio-shell")).toBeVisible();
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByTestId("open-palette").click();
+  await page.keyboard.type("export");
+  await page.keyboard.press("Enter");
+  const download = await downloadPromise;
+  const path = await download.path();
+  expect(path).toBeTruthy();
+
+  // the palette stays open after a command runs; close it before the next command
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("command-palette")).toBeHidden();
+
+  await page.getByTestId("open-palette").click();
+  await page.keyboard.type("light");
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("studio-shell")).toHaveAttribute("data-theme", "light");
+
+  const chooserPromise = page.waitForEvent("filechooser");
+  await page.getByTestId("open-palette").click();
+  await page.keyboard.type("import");
+  await page.keyboard.press("Enter");
+  const chooser = await chooserPromise;
+  await chooser.setFiles(path!);
+
+  await expect(page.getByTestId("studio-shell")).toHaveAttribute("data-theme", "dark", { timeout: 10_000 });
+});

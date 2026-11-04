@@ -106,6 +106,15 @@ interface WorkspaceState {
   panelConfigs: Record<string, Record<string, unknown>>;
 }
 
+export interface WorkspaceExport {
+  schema_version: "1";
+  exported_at: string;
+  theme: "dark" | "light";
+  sourceId: "simulated" | "sidecar";
+  layoutJson: string | null;
+  panelConfigs: Record<string, Record<string, unknown>>;
+}
+
 interface WorkspaceStore extends WorkspaceState {
   sourceRev: number;
   bumpSourceRev(): void;
@@ -113,11 +122,13 @@ interface WorkspaceStore extends WorkspaceState {
   setSourceId(s: "simulated" | "sidecar"): void;
   setLayoutJson(j: string | null): void;
   setPanelConfig(panelId: string, values: Record<string, unknown>): void;
+  exportWorkspace(): WorkspaceExport;
+  importWorkspace(data: WorkspaceExport): void;
 }
 
 export const useWorkspace = create<WorkspaceStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       theme: "dark",
       sourceId: "simulated",
       sourceRev: 0,
@@ -131,6 +142,29 @@ export const useWorkspace = create<WorkspaceStore>()(
         set((s) => ({
           panelConfigs: { ...s.panelConfigs, [panelId]: { ...s.panelConfigs[panelId], ...values } },
         })),
+      exportWorkspace: () => {
+        const s = get();
+        return {
+          schema_version: "1",
+          exported_at: new Date().toISOString(),
+          theme: s.theme,
+          sourceId: s.sourceId,
+          layoutJson: s.layoutJson,
+          panelConfigs: s.panelConfigs,
+        };
+      },
+      importWorkspace: (data) => {
+        if (data.schema_version !== "1") {
+          throw new Error(`unsupported workspace export schema_version ${String(data.schema_version)}`);
+        }
+        set({
+          theme: data.theme,
+          sourceId: data.sourceId,
+          layoutJson: data.layoutJson,
+          panelConfigs: data.panelConfigs,
+          sourceRev: get().sourceRev + 1,
+        });
+      },
     }),
     { name: "pyrobostudio-workspace", storage: createJSONStorage(() => localStorage) },
   ),

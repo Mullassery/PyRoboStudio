@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Command } from "cmdk";
 import { useWorkspace } from "../state/workspace";
 import { panelRegistry } from "../panels";
@@ -16,6 +16,8 @@ export function buildCommands(
   openPanel: (plugin: PanelPlugin) => void,
   setSourceId: (id: "simulated" | "sidecar") => void,
   setTheme: (t: "dark" | "light") => void,
+  exportWorkspace?: () => void,
+  importWorkspace?: () => void,
 ): PaletteCommand[] {
   const cmds: PaletteCommand[] = panelRegistry.list().map((p) => ({
     id: `panel:${p.id}`,
@@ -35,11 +37,20 @@ export function buildCommands(
     { id: "theme:dark", label: "Theme: dark", run: () => setTheme("dark") },
     { id: "theme:light", label: "Theme: light", run: () => setTheme("light") },
   );
+  if (exportWorkspace) {
+    cmds.push({ id: "workspace:export", label: "Workspace: export (download JSON)", run: exportWorkspace });
+  }
+  if (importWorkspace) {
+    cmds.push({ id: "workspace:import", label: "Workspace: import (pick JSON file)", run: importWorkspace });
+  }
   return cmds;
 }
 
 export function CommandPalette(props: { open: boolean; onClose(): void; commands: PaletteCommand[] }) {
   const [q, setQ] = useState("");
+  useEffect(() => {
+    if (props.open) setQ("");
+  }, [props.open]);
   const filtered = useMemo(
     () => props.commands.filter((c) => c.label.toLowerCase().includes(q.toLowerCase())),
     [props.commands, q],

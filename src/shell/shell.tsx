@@ -9,6 +9,7 @@ import { CommandPalette, buildCommands } from "./palette";
 import { panelRegistry } from "../panels";
 import type { PanelMountContextBase, PanelPlugin } from "../sdk/contracts";
 import { makePanelContext } from "../state/sources";
+import type { WorkspaceExport } from "../state/workspace";
 import { sources } from "../sources";
 
 interface PanelProps extends IDockviewPanelProps<{ pluginId: string }> {}
@@ -121,9 +122,37 @@ export function StudioShell() {
     api.addPanel({ id, component: "studio", params: { pluginId: plugin.id } });
   }, []);
 
+  const exportWorkspace = useCallback(() => {
+    const data = useWorkspace.getState().exportWorkspace();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pyrobostudio-workspace-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, []);
+
+  const importWorkspace = useCallback(() => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json";
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      try {
+        const data = JSON.parse(await file.text()) as WorkspaceExport;
+        useWorkspace.getState().importWorkspace(data);
+      } catch (e) {
+        console.error("workspace import failed:", e);
+      }
+    };
+    input.click();
+  }, []);
+
   const commands = useMemo(
-    () => buildCommands(openPanel, setSourceId, setTheme),
-    [openPanel, setSourceId, setTheme],
+    () => buildCommands(openPanel, setSourceId, setTheme, exportWorkspace, importWorkspace),
+    [openPanel, setSourceId, setTheme, exportWorkspace, importWorkspace],
   );
 
   const missing = sourceId === "sidecar" && !source;

@@ -13,7 +13,7 @@ interface TrackInstance {
   is_confirmed: boolean;
 }
 
-interface TrackFrame {
+export interface TrackFrame {
   frame: number;
   timestampNs: number;
   tracks: TrackInstance[];
