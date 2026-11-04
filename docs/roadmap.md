@@ -63,6 +63,13 @@
 - [x] Open hardening leftovers: browser CSP in production build; process-kill (not route-abort) disconnect E2E; Foxglove WS sustained-rate measurement. **DONE (2026-11-04)** — (1) CSP meta injected into the production build only (`vite.config.ts` `cspMeta` plugin, `apply: "build"`; dev exempt for HMR/react-refresh), verified by loading the built app via `vite preview` with Playwright — shell boots, zero CSP violations; `frame-ancestors` is header-only and tracked in security-model §7. (2) `tests/e2e/sidecar-kill.spec.ts` kills the real uvicorn process (`lsof` → `kill`), asserts the footer flips to "disconnected", respawns the sidecar, and asserts automatic recovery — passing. (3) `scripts/bench_ws.py`: 5000-message synthetic MCAP replayed to a connected `foxglove.sdk.v1` client — 5000/5000 received, ~264k msgs/s first→last, no loss; found + fixed that replay was a startup burst (late-joining clients got nothing) by separating `WsTransport.replay()` from `start()`; numbers in `docs/benchmarks.md` §3.
 - Acceptance: benchmarks documented with real numbers; no unverified performance or security claims in docs.
 
+### Phase 7 — Release engineering & degraded-path closure
+- [ ] CI: GitHub Actions on push/PR — frontend (typecheck, vitest, vite build), sidecar (uv sync + pytest), Playwright E2E (self-contained webServers). Acceptance: green runs visible on GitHub, failures block merges.
+- [ ] Foxglove WS playback loop: close the startup-burst design limit — a viewer connecting after startup receives the stream (replay-on-connect or looped playback), honestly tested. Acceptance: `scripts/bench_ws.py` variant shows a late-joining client receiving full data.
+- [ ] Annotation sync server wiring: sidecar serves SyncFleet annotations read-only; `annotation-sync.ts` consumes it; the `annotationSync.enabled` flag graduates from evaluation-only spike to wired feature (or stays degraded with a written reason). Acceptance: end-to-end annotation flow demonstrated with tests.
+- [ ] Golden-mission cross-pane focus (closes Phase 5 PARTIAL): one mission failure event focuses 3D/graph/terrain (not just replay seek). Acceptance: E2E asserts multi-pane focus from a single event.
+- [ ] Release cadence: git tag v0.1.0 + GitHub Release with notes; PyPI publish automated on tag (Trusted Publisher or token in Actions secrets); 0.1.1 if fixes land. Acceptance: tag → release → package page reflect the same commit.
+
 ## Risks & assumptions register
 
 | Risk | Mitigation |
