@@ -11,7 +11,9 @@ import {
   type NodeProps,
 } from "@xyflow/react";
 import ELK from "elkjs/lib/elk.bundled.js";
-import { EmptyState, ErrorState } from "../components/status";
+import { EmptyState, ErrorState, NotCorrelatedState } from "../components/status";
+import { useCorrelationBanner } from "../sdk/use-selection";
+import type { PanelMountContextBase } from "../sdk/contracts";
 
 interface TopoNode {
   id: string;
@@ -67,7 +69,8 @@ async function fetchTopology(): Promise<TopologyResponse> {
   return (await res.json()) as TopologyResponse;
 }
 
-function NetworkTopologyInner() {
+function NetworkTopologyInner({ ctx }: { ctx: PanelMountContextBase }) {
+  const { banner } = useCorrelationBanner(ctx);
   const [topo, setTopo] = useState<TopologyResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [nodes, setNodes] = useState<TopoRfNode[]>([]);
@@ -144,6 +147,7 @@ function NetworkTopologyInner() {
 
   return (
     <div className="relative h-full" data-testid="network-topology">
+      {banner ? <NotCorrelatedState reason={banner} /> : null}
       <div
         className="absolute left-2 top-2 z-10 rounded px-2 py-0.5 text-[9px] uppercase"
         data-testid="topo-badge"
@@ -167,10 +171,10 @@ function NetworkTopologyInner() {
   );
 }
 
-export function NetworkTopologyPanel() {
+export function NetworkTopologyPanel({ ctx }: { ctx: PanelMountContextBase }) {
   return (
     <ReactFlowProvider>
-      <NetworkTopologyInner />
+      <NetworkTopologyInner ctx={ctx} />
     </ReactFlowProvider>
   );
 }

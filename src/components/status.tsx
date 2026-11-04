@@ -76,3 +76,14 @@ export function SelectionSummary({ ref: sel }: { ref: SelectionRef | null }) {
     </span>
   );
 }
+
+export function NotCorrelatedState({ reason }: { reason: string }) {
+  return (
+    <div
+      className="absolute left-2 bottom-2 z-10 rounded border border-border bg-panel px-2 py-1 text-[10px] text-muted"
+      data-testid="selection-uncorrelated"
+    >
+      {reason}
+    </div>
+  );
+}

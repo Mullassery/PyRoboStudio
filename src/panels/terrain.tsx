@@ -3,7 +3,8 @@ import { Deck } from "@deck.gl/core";
 import { H3HexagonLayer } from "@deck.gl/geo-layers";
 import { cellToBoundary } from "h3-js";
 import type { PanelMountContextBase, TerrainRegion } from "../sdk/contracts";
-import { EmptyState, OriginBadge } from "../components/status";
+import { EmptyState, NotCorrelatedState, OriginBadge } from "../components/status";
+import { useCorrelationBanner } from "../sdk/use-selection";
 
 export interface TerrainCell {
   h3Index: string;
@@ -64,6 +65,7 @@ export function TerrainPanel({ ctx }: { ctx: PanelMountContextBase }) {
   const canvasHolder = useRef<HTMLDivElement | null>(null);
   const deckRef = useRef<Deck | null>(null);
   const [robotFilter, setRobotFilter] = useState("all");
+  const { ref: selection, banner } = useCorrelationBanner(ctx);
 
   useEffect(() => {
     let cancelled = false;
@@ -121,6 +123,13 @@ export function TerrainPanel({ ctx }: { ctx: PanelMountContextBase }) {
     });
   }, [regions, deckOk, robotFilter]);
 
+  useEffect(() => {
+    if (!selection || !regions) return;
+    if ((selection.kind === "robot" || selection.kind === "node") && regions.some((r) => r.sourceRobot === selection.label)) {
+      setRobotFilter(selection.label);
+    }
+  }, [selection, regions]);
+
   if (error) return <EmptyState label={`Terrain unavailable: ${error}`} />;
   if (!regions) return <EmptyState label="Loading terrain…" />;
 
@@ -128,7 +137,8 @@ export function TerrainPanel({ ctx }: { ctx: PanelMountContextBase }) {
   const conflicts = regions.filter((r) => r.conflict).length;
 
   return (
-    <div className="flex h-full flex-col" data-testid="terrain-panel">
+    <div className="relative flex h-full flex-col" data-testid="terrain-panel">
+      {banner ? <NotCorrelatedState reason={banner} /> : null}
       <div className="flex items-center justify-between px-2 py-1 text-[10px] text-muted">
         <span data-testid="terrain-summary">
           regions: {regions.length} · conflicts: {conflicts} · basemap: none (local tiles only)

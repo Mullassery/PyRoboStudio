@@ -7,6 +7,7 @@ import {
   MiniMap,
   ReactFlow,
   ReactFlowProvider,
+  useReactFlow,
   Handle,
   Position,
   useEdgesState,
@@ -18,7 +19,8 @@ import {
 } from "@xyflow/react";
 import ELK from "elkjs/lib/elk.bundled.js";
 import type { GraphSnapshot, PanelMountContextBase, SelectionRef } from "../sdk/contracts";
-import { EmptyState, ErrorState } from "../components/status";
+import { useCorrelationBanner } from "../sdk/use-selection";
+import { EmptyState, ErrorState, NotCorrelatedState } from "../components/status";
 import { useWorkspace } from "../state/workspace";
 
 type GraphViewKind = "node" | "topic" | "cluster";
@@ -295,11 +297,13 @@ function GraphExplorerInner({ ctx }: { ctx: PanelMountContextBase }) {
   const [filter, setFilter] = useState("");
   const [collapsed, setCollapsed] = useState(false);
   const [selected, setSelected] = useState<SelectionRef | null>(ctx.selection.current());
+  const { banner } = useCorrelationBanner(ctx);
   const theme = useWorkspace((s) => s.theme);
   const sourceId = useWorkspace((s) => s.sourceId);
   const [nodes, setNodes, onNodesChange] = useNodesState<GraphRfNode>([]);
   const [edges, , onEdgesChange] = useEdgesState<Edge>([]);
   const lastLayoutSig = useRef("");
+  const reactFlow = useReactFlow();
 
   useEffect(() => {
     let cancelled = false;
@@ -341,6 +345,7 @@ function GraphExplorerInner({ ctx }: { ctx: PanelMountContextBase }) {
       if (sig !== lastLayoutSig.current) {
         lastLayoutSig.current = sig;
         setNodes(positioned);
+        window.setTimeout(() => void reactFlow.fitView({ padding: 0.1, duration: 200 }), 50);
       }
     });
     return () => {
@@ -369,6 +374,7 @@ function GraphExplorerInner({ ctx }: { ctx: PanelMountContextBase }) {
 
   return (
     <div className="relative h-full" data-testid="graph-explorer">
+      {banner ? <NotCorrelatedState reason={banner} /> : null}
       <div className="absolute right-2 top-2 z-10 flex items-center gap-2">
         <input
           className="w-44 rounded border border-border bg-panel px-2 py-1 text-xs outline-none"

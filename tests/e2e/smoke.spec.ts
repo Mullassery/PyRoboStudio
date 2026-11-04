@@ -105,3 +105,24 @@ test("network topology panel renders the PyNetworkIntel subnet/device/service gr
   await expect(page.getByTestId("topo-node-device").first()).toBeVisible();
   await expect(page.getByTestId("topo-node-service").first()).toBeVisible();
 });
+
+test("uncorrelated selections surface an explicit not-correlated state", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("studio-shell")).toBeVisible();
+
+  await page.getByText("panel-ros-graph-explorer", { exact: true }).click();
+  await expect(page.getByTestId("graph-explorer")).toBeVisible({ timeout: 15_000 });
+  // wait for the deferred post-layout fitView so the topic node is on-screen
+  await page.waitForTimeout(800);
+  await page.getByTestId(/^graph-topic-/).first().click({ force: true });
+
+  await page.getByTestId("open-palette").click();
+  await page.keyboard.type("network");
+  await page.keyboard.press("Enter");
+  await page.getByText("panel-network-topology", { exact: true }).click();
+  await expect(page.getByTestId("network-topology")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("selection-uncorrelated")).toContainText("not correlated", { timeout: 10_000 });
+
+  await page.getByText("panel-ros-graph-explorer", { exact: true }).click();
+  await expect(page.getByTestId("selection-uncorrelated")).toHaveCount(0);
+});

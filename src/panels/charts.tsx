@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import type { PanelMountContextBase, TopicSample, SelectionRef } from "../sdk/contracts";
-import { EmptyState, OriginBadge } from "../components/status";
+import { EmptyState, NotCorrelatedState, OriginBadge } from "../components/status";
+import { useCorrelationBanner } from "../sdk/use-selection";
 import { useWorkspace } from "../state/workspace";
 
 export interface SeriesPoint {
@@ -34,6 +35,7 @@ export function samplesToSeries(samples: TopicSample[], extractor: ((d: TopicSam
 
 export function ChartsPanel({ ctx }: { ctx: PanelMountContextBase }) {
   const [selected, setSelected] = useState<SelectionRef | null>(ctx.selection.current());
+  const { banner } = useCorrelationBanner(ctx);
   const [samples, setSamples] = useState<TopicSample[] | null>(null);
   const sourceChanged = useWorkspace((s) => s.sourceId);
   const [fallbackTopic, setFallbackTopic] = useState<string | null>(null);
@@ -96,7 +98,8 @@ export function ChartsPanel({ ctx }: { ctx: PanelMountContextBase }) {
   if (!samples) return <EmptyState label="Loading samples…" />;
 
   return (
-    <div className="flex h-full flex-col" data-testid="charts-panel">
+    <div className="relative flex h-full flex-col" data-testid="charts-panel">
+      {banner ? <NotCorrelatedState reason={banner} /> : null}
       <div className="flex items-center justify-between px-2 py-1">
         <span className="font-mono text-[10px] text-muted">{fallbackTopic} · linear.x (derived)</span>
         <OriginBadge origin="derived" />

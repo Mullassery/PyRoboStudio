@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PanelMountContextBase, SessionEvent, SessionSummary } from "../sdk/contracts";
-import { EmptyState, OriginBadge } from "../components/status";
+import { EmptyState, NotCorrelatedState, OriginBadge } from "../components/status";
+import { useCorrelationBanner } from "../sdk/use-selection";
 import { useWorkspace } from "../state/workspace";
 
 export function sessionSpanNs(s: SessionSummary): bigint {
@@ -24,6 +25,7 @@ export function ReplayPanel({ ctx }: { ctx: PanelMountContextBase }) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
   const sourceChanged = useWorkspace((s) => s.sourceId);
+  const { ref: selected, banner } = useCorrelationBanner(ctx);
 
   useEffect(() => {
     let cancelled = false;
@@ -88,6 +90,12 @@ export function ReplayPanel({ ctx }: { ctx: PanelMountContextBase }) {
     ctx.time.declareDomain(session.span);
   }, [session, ctx]);
 
+  useEffect(() => {
+    if (!selected || selected.kind !== "session_event" || !events || !session) return;
+    const ev = events.find((e) => e.id === selected.id);
+    if (ev) ctx.time.seek(ev.timestampNs, session.span.clockDomain);
+  }, [selected, events, session, ctx]);
+
   if (error) return <EmptyState label={`Sessions unavailable: ${error}`} />;
   if (!sessions) return <EmptyState label="Loading sessions…" />;
   if (sessions.length === 0) {
@@ -95,7 +103,8 @@ export function ReplayPanel({ ctx }: { ctx: PanelMountContextBase }) {
   }
 
   return (
-    <div className="flex h-full flex-col text-xs" data-testid="replay-panel">
+    <div className="relative flex h-full flex-col text-xs" data-testid="replay-panel">
+      {banner ? <NotCorrelatedState reason={banner} /> : null}
       <div className="flex items-center justify-between px-2 py-1">
         <select
           className="rounded border border-border bg-panel px-1 py-0.5 text-[10px]"

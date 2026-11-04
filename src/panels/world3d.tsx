@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import type { PanelMountContextBase, TfFrame, TfTree } from "../sdk/contracts";
-import { EmptyState, OriginBadge } from "../components/status";
+import { EmptyState, NotCorrelatedState, OriginBadge } from "../components/status";
+import { useCorrelationBanner } from "../sdk/use-selection";
 import * as THREE from "three";
 
 export function hasWebgl(): boolean {
@@ -98,6 +99,7 @@ function World3DInner({ ctx }: { ctx: PanelMountContextBase }) {
   const [tree, setTree] = useState<TfTree | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
+  const { ref: selection, banner } = useCorrelationBanner(ctx);
   const webgl = useRef<boolean | null>(null);
   if (webgl.current === null) {
     webgl.current = hasWebgl();
@@ -125,6 +127,14 @@ function World3DInner({ ctx }: { ctx: PanelMountContextBase }) {
   }, [ctx]);
 
   const frames = useMemo(() => (tree ? frameTreeToScene(tree.frames) : null), [tree]);
+
+  useEffect(() => {
+    if (!selection) return;
+    if (selection.kind === "frame" && tree?.frames.some((f) => f.frameId === selection.id)) {
+      setSelectedFrame(selection.id);
+    }
+  }, [selection, tree]);
+
   if (error) {
     return <EmptyState label={`TF unavailable: ${error}`} />;
   }
@@ -136,7 +146,8 @@ function World3DInner({ ctx }: { ctx: PanelMountContextBase }) {
   }
 
   return (
-    <div className="flex h-full flex-col" data-testid="world-3d">
+    <div className="relative flex h-full flex-col" data-testid="world-3d">
+      {banner ? <NotCorrelatedState reason={banner} /> : null}
       <div className="flex items-center justify-between px-2 py-1 text-[10px] text-muted">
         <span>
           TF frames: {tree.frames.length} · fixed frame: odom

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PanelMountContextBase, SelectionRef, TopicQosSummary } from "../sdk/contracts";
-import { EmptyState, OriginBadge } from "../components/status";
+import { EmptyState, NotCorrelatedState, OriginBadge } from "../components/status";
+import { useCorrelationBanner } from "../sdk/use-selection";
 import { useWorkspace } from "../state/workspace";
 import type { GraphSnapshot, TopicSample } from "../sdk/contracts";
 
@@ -9,6 +10,7 @@ export function DataInspectorPanel({ ctx }: { ctx: PanelMountContextBase }) {
   const [samples, setSamples] = useState<TopicSample[] | null>(null);
   const [subs, setSubs] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<SelectionRef | null>(ctx.selection.current());
+  const { banner } = useCorrelationBanner(ctx);
   const sourceId = useWorkspace((s) => s.sourceId);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -85,7 +87,9 @@ export function DataInspectorPanel({ ctx }: { ctx: PanelMountContextBase }) {
   const detail = topic && ctx.source;
 
   return (
-    <div className="flex h-full flex-col gap-2 p-2" data-testid="inspector">
+    <>
+      {banner ? <NotCorrelatedState reason={banner} /> : null}
+      <div className="flex h-full flex-col gap-2 p-2" data-testid="inspector">
       <div className="flex items-center gap-2">
         <input
           className="w-full rounded border border-border bg-panel px-2 py-1 text-xs outline-none"
@@ -172,7 +176,8 @@ export function DataInspectorPanel({ ctx }: { ctx: PanelMountContextBase }) {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
