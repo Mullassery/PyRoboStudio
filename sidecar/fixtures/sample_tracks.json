@@ -1,0 +1,61 @@
+{
+  "schema_version": "1",
+  "clip_id": "clip-warehouse-1",
+  "max_age": 3,
+  "frames": [
+    {
+      "frame": 0,
+      "timestampNs": 0,
+      "tracks": [
+        {
+          "track_id": 1,
+          "bbox": [
+            10,
+            10,
+            60,
+            120
+          ],
+          "class_id": 0,
+          "confidence": 0.93,
+          "time_since_update": 0,
+          "hit_streak": 4,
+          "is_confirmed": true
+        },
+        {
+          "track_id": 2,
+          "bbox": [
+            200,
+            80,
+            260,
+            190
+          ],
+          "class_id": 1,
+          "confidence": 0.44,
+          "time_since_update": 2,
+          "hit_streak": 1,
+          "is_confirmed": false
+        }
+      ]
+    },
+    {
+      "frame": 1,
+      "timestampNs": 200000000,
+      "tracks": [
+        {
+          "track_id": 1,
+          "bbox": [
+            12,
+            10,
+            64,
+            120
+          ],
+          "class_id": 0,
+          "confidence": 0.91,
+          "time_since_update": 0,
+          "hit_streak": 5,
+          "is_confirmed": true
+        }
+      ]
+    }
+  ]
+}

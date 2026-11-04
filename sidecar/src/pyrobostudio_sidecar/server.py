@@ -13,6 +13,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 
 from pyrobostudio_sidecar.recorded import degraded_topics, iter_samples, load_session, topic_activity
+from pyrobostudio_sidecar.repos import mount_from_fixtures, router as repos_router
 from pyrobostudio_sidecar.terrain_fixture import regions_json
 from pyrobostudio_sidecar.ws_transport import WsTransport
 
@@ -38,6 +39,8 @@ def create_app(session_id: str = "sample_session", ws_port: int | None = WS_PORT
             ws_transport.stop()
 
     app = FastAPI(lifespan=lifespan)
+    mounts = mount_from_fixtures()
+    app.include_router(repos_router())
     mcap_path = FIXTURES / "sample_session.mcap"
     if not mcap_path.exists():
         raise RuntimeError(
@@ -49,7 +52,7 @@ def create_app(session_id: str = "sample_session", ws_port: int | None = WS_PORT
 
     @app.get("/capabilities")
     def capabilities() -> dict:
-        ws_state = ws_transport.starting or ws_transport.loaded
+        ws_state = bool(ws_transport) and (ws_transport.starting or ws_transport.loaded)
         return {
             "schema_version": "1",
             "origin": "recorded",
@@ -73,6 +76,15 @@ def create_app(session_id: str = "sample_session", ws_port: int | None = WS_PORT
                     "loaded": False,
                     "errors": ["no ROS 2 environment on this host"],
                 },
+                *[
+                    {
+                        "name": f"repos/{name}",
+                        "loaded": m is not None,
+                        "degraded": [] if m is None else m.degraded,
+                        "errors": [] if m is not None else ["fixture missing — run make_fixture"],
+                    }
+                    for name, m in mounts.items()
+                ],
             ],
             "limits": {"maxSubscriptions": 8, "maxBufferedMessages": 200},
         }

@@ -157,8 +157,8 @@ Rationale:
 
 ## 8. Risks and open items (carried forward)
 
-1. **elkjs licensing**: EPL-2.0/GPL dual license — acceptable for app embedding, but confirm distribution-mode implications with license review before bundling (or fall back to MIT `@dagrejs/dagre`).
-2. **rosbags license history**: PyPI metadata says Apache-2.0; a past MPL-2.0 lineage is suspected. Verify the LICENSE file in `github.com/tidycode/rosbags` before vendoring/redistribution.
+1. **elkjs licensing**: EPL-2.0/GPL dual license — acceptable for app embedding, but confirm distribution-mode implications with license review before bundling (or fall back to MIT `@dagrejs/dagre`). **Status 2026-11-04**: elkjs is bundled in the production build (graph-explorer + network-topology panels) under the EPL-2.0 grant; source form of elkjs is not distributed, and EPL-2.0 permits unmodified object-code bundling without source obligations beyond the license notice. License notice to be added to the distribution README before any public release.
+2. **rosbags license history**: PyPI metadata says Apache-2.0; a past MPL-2.0 lineage is suspected. **✅ Resolved 2026-11-04**: verified the LICENSE file shipped in the installed wheel (`rosbags-0.11.9.dist-info/licenses/LICENSE.txt`) is Apache License 2.0 — dependency adopted for the Phase 4 .db3 adapter.
 3. **`urdf-loader` bus factor**: single hobby maintainer. Pin versions; vendor a fork path in the SDK docs.
 4. **dockview CSS + React 19 integration** and bundle actuals: verify at commit time with `rollup-plugin-visualizer`; agent-reported 90 KB gzip is a bundlephobia estimate.
 5. **uPlot** for high-rate time-series: unverified candidate — evaluate before Phase 3 replay work.

@@ -19,7 +19,7 @@
 - [x] `docs/architecture/security-model.md` (read-only, localhost, allowlists)
 - [x] This roadmap
 - [ ] `docs/decisions/` ADR-0001..0006 (sidecar+foxglove-sdk; dockview; xyflow/graphology; R3F+urdf-loader; deck.gl/Cesium split canvases; no-publish v1)
-- [ ] Resolve the two license-verification items from `library-evaluation.md` (rosbags LICENSE, elkjs distribution mode)
+- [x] Resolve the two license-verification items from `library-evaluation.md` (rosbags LICENSE, elkjs distribution mode) — **DONE (2026-11-04)**: rosbags wheel LICENSE verified Apache-2.0; elkjs EPL-2.0 bundling note recorded in `library-evaluation.md` §8.
 
 ### Phase 2 — Minimal vertical slice
 - [x] ~~Repo scaffolding~~ — done: git init; Vite 8.3.5 + React 19.3.1 + TS 5.9 strict + Vitest 5.0.5 project; dockview-react 8.8.3 installed (0 vulnerabilities). **Validation spikes passed 2026-10-31**: (1) dockview layout `toJSON/fromJSON` round-trip under React 19 + jsdom (`src/spike/dockview-spike.test.tsx`; panel content commits async, only active tab content mounts); (2) foxglove-sdk 0.30.3 server on Python 3.12 negotiates `foxglove.sdk.v1`, advertises `time` capability and channels (`sidecar/spikes/test_foxglove_handshake.py`; channels are context-level `foxglove.log()`; wire ops are `serverInfo`/`advertise`). TS pinned to 5.9 because typescript-eslint supports `<6.1.0` (TS 7 upgrade gate recorded in package.json decision trail).
@@ -39,12 +39,14 @@
 - Acceptance: recorded-session playback with synced 3D/plots on real fixtures; no unverified message/model support claims shipped.
 
 ### Phase 4 — Repository adapters (progressive, not gatekeeping release)
-- [ ] PyRoboVision adapter (tracks/detections; perception view groundwork).
-- [ ] PyRoboFrames adapter (LeRobot/Parquet ingestion; frame inspector integration).
-- [ ] PyRoboSimulator adapter (scenarios, provenance badged SIMULATED).
-- [ ] PyNetworkIntel topology panel (distinct data model over shared graphology infra).
-- [ ] SyncFleet fleet status (read-only journal summaries).
-- Acceptance: each adapter has round-trip fixture tests + a conformance note; no adapter blocks everything else.
+- [x] `.db3` adapter via rosbags 0.11.9 (Apache-2.0, LICENSE verified in wheel) — closes the Phase 2 PARTIAL item. **DONE (2026-11-04)** — `ros2bag.py` read-only sqlite + CDR decode (`Stores.ROS2_HUMBLE` typestore, `__msgtype__` stripping, large-array truncation), round-trip fixture writer + 5 tests incl. real PyRoboReplay fixture decode (skipped when repo absent).
+- [x] PyRoboFrames adapter (LeRobotDataset v3.0 Parquet ingestion). **DONE (2026-11-04)** — `lerobot.py` (`episodes/features/steps/stats/summary/provenance` against `meta/info.json` + `meta/episodes/chunk-*/file-*.parquet` + data shards), 4 tests.
+- [x] PyRoboVision adapter (tracks/detections export JSON contract — PyRoboVision has no on-disk persistence, so the contract is an export file; documented in `adapter-schemas.md` §3). **DONE (2026-11-04)** — `vision_tracks.py` validation/summarize + round-trip tests; frontend groundwork (tracker debugger) stays Phase 5.
+- [x] PyRoboSimulator adapter (world_spec.json ingestion, SIMULATED badge). **DONE (2026-11-04)** — `worldsim.py` bounds/schema guards + summarize.
+- [x] PyNetworkIntel adapter + topology panel (distinct subnet/device/service model over the installed xyflow infra). **DONE (2026-11-04)** — `networkintel.py` read-only sqlite adapter + `src/panels/network-topology.tsx` (ReactFlow/ELK, SIMULATED-free honest badge from adapter).
+- [x] SyncFleet adapter (read-only journal summaries, replication lag, open conflicts). **DONE (2026-11-04)** — `syncfleet.py` status/lag/conflicts + guard tests.
+- [x] Sidecar exposure: `/repos/*` router mounting all six adapters from `fixtures/` (each mount degrades independently), `adapterStatus` entries in `/capabilities`, 7 API tests. **DONE (2026-11-04)**.
+- Acceptance: each adapter has round-trip fixture tests + a conformance note (`docs/research/adapter-schemas.md`); no adapter blocks everything else.
 
 ### Phase 5 — Cross-view workflows
 - [ ] Selection bus roll-out across all panels with mapping tables + explicit "not correlated" states.

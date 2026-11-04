@@ -89,3 +89,19 @@ test("losing the sidecar mid-session shows an accurate disconnected state", asyn
   await expect(page.getByTestId("status-source")).toContainText("disconnected", { timeout: 15_000 });
   await expect(page.getByTestId("connection-status")).toContainText("Sidecar");
 });
+
+test("network topology panel renders the PyNetworkIntel subnet/device/service graph", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("studio-shell")).toBeVisible();
+
+  await page.getByTestId("open-palette").click();
+  await page.keyboard.type("network");
+  await page.keyboard.press("Enter");
+  await expect(page.getByText("panel-network-topology", { exact: true })).toBeVisible({ timeout: 10_000 });
+  await page.getByText("panel-network-topology", { exact: true }).click();
+  await expect(page.getByTestId("network-topology")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("topo-badge")).toBeVisible();
+  await expect(page.getByTestId("topo-node-subnet").first()).toBeVisible();
+  await expect(page.getByTestId("topo-node-device").first()).toBeVisible();
+  await expect(page.getByTestId("topo-node-service").first()).toBeVisible();
+});

@@ -5,6 +5,7 @@ import { World3DPanel } from "./world3d";
 import { TerrainPanel } from "./terrain";
 import { ReplayPanel } from "./replay";
 import { ChartsPanel } from "./charts";
+import { NetworkTopologyPanel } from "./network-topology";
 
 export const graphExplorer: PanelPlugin = {
   id: "ros-graph-explorer",
@@ -66,8 +67,18 @@ export const charts: PanelPlugin = {
   component: ChartsPanel,
 };
 
+export const networkTopology: PanelPlugin = {
+  id: "network-topology",
+  version: "1.0.0",
+  contractVersion: 1,
+  displayName: "Network Topology",
+  description: "PyNetworkIntel scan sessions: subnet/device/service graph, findings",
+  requiredCapabilities: [],
+  component: NetworkTopologyPanel,
+};
+
 export const panelRegistry: PanelRegistry = new PanelRegistry();
-for (const p of [graphExplorer, dataInspector, world3d, terrain, replay, charts]) {
+for (const p of [graphExplorer, dataInspector, world3d, terrain, replay, charts, networkTopology]) {
   panelRegistry.register(p);
 }
 
