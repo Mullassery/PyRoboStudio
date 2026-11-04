@@ -40,6 +40,19 @@ class WsTransport:
         )
         self.starting = False
         self.loaded = True
+        self.replay()
+        return self._server
+
+    def replay(self) -> int:
+        """Publish the fixture stream to currently-connected clients.
+
+        Returns the number of messages logged. Called from start() (startup
+        burst) and available for benchmarks / future playback loops so a
+        client that is already connected can receive the stream.
+        """
+        if not self._server:
+            raise RuntimeError("replay() called before start()")
+        count = 0
         with open(self.fixture, "rb") as fp:
             for _schema, channel, message in make_reader(fp).iter_messages():
                 try:
@@ -47,7 +60,8 @@ class WsTransport:
                 except (ValueError, UnicodeDecodeError):
                     continue
                 foxglove.log(channel.topic, payload, log_time=message.log_time)
-        return self._server
+                count += 1
+        return count
 
     def _time_range(self) -> tuple[int, int]:
         with open(self.fixture, "rb") as fp:

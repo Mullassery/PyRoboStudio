@@ -54,15 +54,25 @@ shapes → `IndexError`). Fix: every request now opens a fresh read-only
 connection (`repos.py` per-request handles; `Ros2BagAdapter` per-call
 connections). Re-run shows 0 errors.
 
-## 3. Message-rate ceilings (by design, measured where applicable)
+## 3. Message-rate ceilings
 
 - HTTP polling architecture: panels poll at 1.5–4 s intervals with bounded
   sample views (max 10 per topic; subscription cap 8 topics). The effective
   ceiling is the poll cadence, not the server: at ~1400 rps endpoint
   capacity the sidecar is not the bottleneck for a single-user studio.
-- Foxglove WS (port 9887): channel advertisement is conformance-tested;
-  sustained data-rate ceiling over WS is **unmeasured** — honest gap, only
-  relevant when a live ROS bridge streams through it (Phase 7+).
+- **Foxglove WS (port 9887), measured 2026-11-04** — command:
+  `cd sidecar && uv run python ../scripts/bench_ws.py`. A synthetic 5000-message
+  MCAP is replayed through `WsTransport.replay()` to a connected
+  `foxglove.sdk.v1` client (advertise → subscribe → replay): **5000/5000
+  messages received, first→last stream window 0.019 s ≈ 264k msgs/s**. No
+  message loss. The transport ceiling is orders of magnitude beyond
+  single-viewer needs; the practical bound remains the fixture size and the
+  startup-replay design (see honest note below).
+- **Design note found by this benchmark:** the replay was a startup burst —
+  a client connecting after `start()` never received data. `WsTransport` now
+  separates `replay()` from `start()`, so a connected client can be served
+  (benchmarks, future playback loops); the startup-burst behavior is
+  preserved by default.
 
 ## 4. Memory soak + dockview multi-panel limits
 

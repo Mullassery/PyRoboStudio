@@ -2,6 +2,10 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "tests/e2e",
+  // workers:1 — sidecar-kill.spec.ts kills the real sidecar process; it must
+  // not race the other specs' HTTP calls (files run alphabetically, kill test
+  // first, respawn before smoke runs)
+  workers: 1,
   use: {
     baseURL: "http://localhost:5173",
     trace: "off",
