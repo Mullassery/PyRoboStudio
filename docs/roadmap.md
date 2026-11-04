@@ -56,10 +56,12 @@
 - Acceptance: golden-mission demo drives 3D + graph + perception + terrain from one failure event. **PARTIAL (2026-11-04)** — mission event drives replay seek + selection bus; panels without mappings show explicit not-correlated states rather than fake correlation. Full cross-pane filtering (3D/graph/terrain focus) still open.
 
 ### Phase 6 — Benchmark and harden
-- [ ] Performance budget campaign (master prompt §10): large graph threshold measurement (xyflow vs sigma switch point), message-rate ceilings, memory soak, dockview multi-panel limits; document real numbers vs claims.
-- [ ] Security review vs `security-model.md`; negative tests; dependency/license audit.
-- [ ] Docs: plugin author guide, sidecar deployment guide (macOS/Ubuntu), troubleshooting; honest competitive-claim revisions.
-- [ ] Decide: do the flags/disabled paths from Phases 2-5 become GA, or stay documented as degraded?
+- [x] Performance budget campaign (master prompt §10). **DONE (2026-11-04)** — real numbers in `docs/benchmarks.md`: ELK layout ~0.23 ms/node (461 ms @ 2000 nodes → xyflow+ELK adequate through ~1000–2000 nodes, sigma switch not justified); sidecar ~1400–1600 rps/endpoint at 8-way concurrency (p50 ~3 ms); 60 s memory soak with all 9 panels — no leak (heap returns to baseline). **The benchmark found and fixed a real bug**: shared sqlite connections across uvicorn worker threads corrupt cursor state under concurrency (intermittent 500s on `/repos/*`); now per-request connections.
+- [x] Security review vs `security-model.md`; negative tests; dependency/license audit. **DONE (2026-11-04)** — 7 negative tests (`test_security.py`): path traversal on `/topics`//`sessions`//`missions` → 404, no CORS middleware, repo stores reject writes (mode=ro verified). Python dep license audit: all permissive (mcap/lz4 verified from upstream; no GPL/AGPL). npm audit unchanged from 2026-11-01 triage. Recorded in security-model §8.
+- [x] Docs: plugin author guide, sidecar deployment guide (macOS/Ubuntu), troubleshooting; honest competitive-claim revisions. **DONE (2026-11-04)** — `docs/plugin-author-guide.md`, `docs/sidecar-deployment.md`, `docs/troubleshooting.md`; README rewritten with quickstart/test/benchmark sections. Competitive-claim revision: benchmarks.md §1 replaces the earlier "xyflow vs sigma" speculation with measured numbers.
+- [x] Decide: do the flags/disabled paths from Phases 2-5 become GA, or stay documented as degraded? **DECIDED (2026-11-04)** — stay documented-as-degraded: `ros-live` (requires Ubuntu + ROS 2 env; honest error surfaced), `annotationSync.enabled` (evaluation-only spike, no server wiring), 3D marker subset (path only), Foxglove WS data-rate ceiling (unmeasured, only relevant to live mode). GA: everything else shipped in Phases 2–5. CSP enforcement and the process-kill disconnect variant remain open hardening items, tracked below.
+- [ ] Open hardening leftovers: browser CSP in production build; process-kill (not route-abort) disconnect E2E; Foxglove WS sustained-rate measurement.
+- Acceptance: benchmarks documented with real numbers; no unverified performance or security claims in docs.
 
 ## Risks & assumptions register
 

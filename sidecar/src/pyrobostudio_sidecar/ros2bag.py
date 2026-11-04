@@ -7,6 +7,7 @@ Undecodable topics are reported as degraded, never silently skipped.
 import dataclasses
 import json
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 from typing import Any
 
@@ -45,65 +46,90 @@ def _to_jsonable(value: Any) -> Any:
     return None
 
 
+_TYPESTORE = None
+
+
+def _typestore():
+    global _TYPESTORE
+    if _TYPESTORE is None:
+        _TYPESTORE = get_typestore(Stores.ROS2_HUMBLE)
+    return _TYPESTORE
+
+
 class Ros2BagAdapter:
+    """Read-only ROS 2 .db3 bag adapter.
+
+    Opens a fresh read-only sqlite connection per operation: uvicorn serves
+    sync endpoints from a worker-thread pool, and sharing one sqlite3
+    connection across threads corrupts cursor state under concurrency
+    (found by the Phase 6 benchmark). Read-only immutable connections are
+    cheap to open, so per-call connections are the honest fix.
+    """
+
     def __init__(self, path: Path) -> None:
         self.path = path
-        self.typestore = get_typestore(Stores.ROS2_HUMBLE)
-        self.con = sqlite3.connect(
-            f"file:{path}?mode=ro&immutable=1", uri=True, check_same_thread=False
-        )
-        self._validate_schema()
+        self.typestore = _typestore()
+        with closing(self._connect()) as con:
+            self._validate_schema(con)
 
-    def _validate_schema(self) -> None:
+    def _connect(self) -> sqlite3.Connection:
+        return sqlite3.connect(f"file:{self.path}?mode=ro&immutable=1", uri=True)
+
+    def _validate_schema(self, con: sqlite3.Connection) -> None:
         tables = {
             row[0]
-            for row in self.con.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            )
+            for row in con.execute("SELECT name FROM sqlite_master WHERE type='table'")
         }
         missing = {"topics", "messages"} - tables
         if missing:
             raise ValueError(f"{self.path}: not a ROS 2 bag, missing tables {sorted(missing)}")
 
     def topics(self) -> list[dict]:
-        rows = self.con.execute("SELECT id, name, type FROM topics ORDER BY id").fetchall()
+        with closing(self._connect()) as con:
+            rows = con.execute("SELECT id, name, type FROM topics ORDER BY id").fetchall()
         return [
             {"id": f"t/{name}", "name": name, "msgType": typ}
             for _id, name, typ in rows
         ]
 
     def span(self) -> dict:
-        row = self.con.execute(
-            "SELECT MIN(timestamp), MAX(timestamp) FROM messages"
-        ).fetchone()
+        with closing(self._connect()) as con:
+            row = con.execute(
+                "SELECT MIN(timestamp), MAX(timestamp) FROM messages"
+            ).fetchone()
         if row is None or row[0] is None:
             raise ValueError(f"{self.path}: bag has no messages")
         return {"startNs": int(row[0]), "endNs": int(row[1]), "clockDomain": "ros_time"}
 
     def metadata(self) -> dict:
-        return {k: v for k, v in self.con.execute("SELECT key, value FROM metadata")}
+        with closing(self._connect()) as con:
+            return {k: v for k, v in con.execute("SELECT key, value FROM metadata")}
 
     def degradation(self) -> list[str]:
         known = {name for name in self.typestore.types}
         out: list[str] = []
-        for _id, name, typ in self.con.execute("SELECT id, name, type FROM topics"):
+        with closing(self._connect()) as con:
+            rows = con.execute("SELECT id, name, type FROM topics").fetchall()
+        for _id, name, typ in rows:
             if typ not in known:
                 out.append(f"{name}: type {typ} not in rosbags ROS2_HUMBLE typestore")
         return out
 
     def samples(self, topic: str, max_count: int = 10) -> list[dict]:
-        row = self.con.execute(
-            "SELECT id, type FROM topics WHERE name = ?", (topic,)
-        ).fetchone()
+        with closing(self._connect()) as con:
+            row = con.execute(
+                "SELECT id, type FROM topics WHERE name = ?", (topic,)
+            ).fetchone()
         if row is None:
             raise KeyError(f"unknown topic {topic}")
         _tid, typ = row
         if typ not in self.typestore.types:
             raise ValueError(f"type {typ} not decodable by rosbags typestore")
-        rows = self.con.execute(
-            "SELECT timestamp, data FROM messages WHERE topic_id = ? ORDER BY timestamp LIMIT ?",
-            (row[0], max_count),
-        ).fetchall()
+        with closing(self._connect()) as con:
+            rows = con.execute(
+                "SELECT timestamp, data FROM messages WHERE topic_id = ? ORDER BY timestamp LIMIT ?",
+                (row[0], max_count),
+            ).fetchall()
         samples: list[dict] = []
         for seq, (ts, blob) in enumerate(rows):
             msg = self.typestore.deserialize_cdr(blob, typ)
@@ -120,11 +146,12 @@ class Ros2BagAdapter:
 
     def message_counts(self) -> dict:
         out: dict[str, int] = {}
-        for name, tid in self.con.execute("SELECT name, id FROM topics"):
-            c = self.con.execute(
-                "SELECT COUNT(*) FROM messages WHERE topic_id = ?", (tid,)
-            ).fetchone()[0]
-            out[name] = c
+        with closing(self._connect()) as con:
+            for name, tid in con.execute("SELECT name, id FROM topics").fetchall():
+                c = con.execute(
+                    "SELECT COUNT(*) FROM messages WHERE topic_id = ?", (tid,)
+                ).fetchone()[0]
+                out[name] = c
         return out
 
 

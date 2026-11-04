@@ -72,3 +72,27 @@ macOS note: no ROS install assumed; sidecar must never require `rclpy` to start 
 - **Exposure analysis:** PyRoboStudio never invokes the affected code paths. We render layers from explicit `h3-index` strings and region objects; we never load 3D tiles, glTF archives, texture archives, or ZIP bundles. No untrusted-network bytes reach those decoders in the studio.
 - **Why we did not "fix":** `npm audit fix --force` would downgrade `@deck.gl/geo-layers` to 9.0.6 (breaking, contradicts ADR-0005 pinning), and none of the vulnerable symbols are in the executed dependency closure. Re-evaluate on each deck.gl upgrade; if a loaders.gl release drops `fflate` 0.7.x, take it immediately.
 - Record kept per §2 "no silent skipping of `npm audit`".
+
+### 2026-11-04 — Phase 6 gate: negative tests + dependency/license audit
+
+**Negative tests added** (`sidecar/src/pyrobostudio_sidecar/test_security.py`, 7 tests):
+path traversal on `/topics`, `/sessions`, `/missions` returns 404 and never touches
+the filesystem; no `CORSMiddleware` present (no cross-origin story until non-localhost
+is a supported mode); repo sqlite stores opened via `mode=ro` fail INSERTs; ros2bag
+adapter connections reject writes.
+
+**Sidecar license audit (Python deps, verified from wheels/PyPI/GitHub):**
+all permissive — fastapi MIT, uvicorn BSD-3, starlette BSD-3, pydantic MIT,
+foxglove-sdk MIT, rosbags Apache-2.0 (wheel LICENSE verified Phase 4), pyarrow
+Apache-2.0, websockets BSD-3, numpy BSD/MIT, mcap + mcap-ros2-support MIT
+(verified from foxglove/mcap), lz4 BSD-3-Clause (verified from python-lz4),
+certifi MPL-2.0 (weak copyleft, dependency-use only), apsw "any-OSI" (permissive,
+indirect dep). No GPL/AGPL in the sidecar dependency tree.
+
+**Frontend:** `npm audit` unchanged from the 2026-11-01 triage (11 transitive
+findings in deck.gl/loaders.gl parsers, none in the executed closure — see above).
+
+**Deployment checklist progress:** §7 items now covered by tests: localhost bind
+(`server.py.__main__` binds 127.0.0.1), no-publish endpoints (Phase 2 negative test),
+file-path rejection (this gate's traversal tests). Remaining open: browser CSP
+enforcement in build, bearer-token/TLS options (only relevant for non-localhost mode).
